@@ -1,9 +1,18 @@
 import pandas as pd 
-import quandl  
+import quandl, datetime, math
 import numpy as np 
-import math 
 from sklearn import preprocessing, cross_validation, svm 
 from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt 
+from matplotlib import style 
+
+style.use('ggplot')
+# specifies that we want the graph to look a certain way :P for aesthetics only
+# I think 
+
+'''
+Currently on episode 6
+'''
 
 df = quandl.get('WIKI/GOOGL')
 
@@ -39,11 +48,9 @@ df['label'] = df[forecast_col].shift(-forecast_out)
 # features are attributes of what, in our mind, may cause the adj. close price
 # in 10 days to change (10%? not 10 days, since we did not specify a time
 # frame)
-df.dropna(inplace=True)
 
 X = np.array(df.drop(['label'], 1)) 
 # df.drop RETURNS a new array
-y = np.array(df['label'])
 
 X = preprocessing.scale(X)
 # In order to properly scale values, you need to include ALL values (training
@@ -52,7 +59,12 @@ X = preprocessing.scale(X)
 # This adds processing time, so if you were doing high frequency trading, you
 # would want to skip this step!
 
+X_lately = X[-forecast_out:]
+X = X[:-forecast_out]
+
 df.dropna(inplace=True)
+y = np.array(df['label'])
+y = np.array(df['label'])
 
 X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y,
         test_size = 0.2)
@@ -60,10 +72,10 @@ X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y,
 # training and testing data. Neato. 
 
 # LINEAR REGRESSION  
-clf = LinearRegression(n_jobs=10)
+clf = LinearRegression(n_jobs=-1)
 # n_jobs specifies number of parallel jobs to run. Speeds up training!
 # Parallel jobs (multi threads) only work well in some cases, like linear
-# regression, do not work in others, like SVMs
+# regression, do not work in others, like SVMs. Set as -1 to use max threads
 #
 # BUT WHAT IF YOU WANT TO USE ANOTHER ALGORITHM (EG. SUPPORT VECTOR MACHINE)
 # aka SVM 
@@ -77,5 +89,32 @@ clf.fit(X_train, y_train)
 accuracy = clf.score(X_test, y_test)
 # score == test 
 
-print(accuracy)
+forecast_set = clf.predict(X_lately)
+# forecast set. you can pass a single thing or an array of values 
 
+print(forecast_set, accuracy, forecast_out)
+
+df['Forecast'] = np.nan 
+
+last_date = df.iloc[-1].name
+last_unix = last_date.timestamp()
+one_day = 86400
+next_unix = last_unix + one_day
+
+# Note that x and y in our data do NOT necessarily correspond to the x and y
+# values you can imagine on a graph (and when you graph it). When we plot we
+# will be plotting expected price vs dates, of which, we need to figure out the
+# dates! Which is what is going on here. 
+
+for i in forecast_set:
+    next_date = datetime.datetime.fromtimestamp(next_unix)
+    next_unix += one_day
+    df.loc[next_date] = [np.nan for _ in range(len(df.columns)-1)] + [i]
+
+
+df['Adj. Close'].plot()
+df['Forecast'].plot()
+plt.legend(loc=4)
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.show()
