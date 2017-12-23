@@ -9,10 +9,6 @@ one_hot means we are looking for something like:
     all zero
 '''
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 23790bcb0c0309a745c7226a4b6baf78ab51fe48
 n_nondes_hl1 = 500
 n_nondes_hl2 = 500
 n_nondes_hl3 = 500
@@ -69,11 +65,7 @@ def train_neural_network(x):
 
     # learning rate = 0.001, default
     optimizer = tf.train.AdamOptimizer().minimize(cost)
-<<<<<<< HEAD
     # optimizer = tf.train.AdamOptimizer(0.01).minimize(cost)
-=======
-
->>>>>>> 23790bcb0c0309a745c7226a4b6baf78ab51fe48
     hm_epochs = 20
     # how many epochs?
 
@@ -89,11 +81,7 @@ def train_neural_network(x):
                 # have to do this on our own. mnist does this automatically
                 _, c = sess.run([optimizer, cost], feed_dict={x:epoch_x, y:epoch_y})
                 epoch_loss += c
-<<<<<<< HEAD
             print('Epoch', epoch+1, 'completed out of', hm_epochs, 'loss:', epoch_loss)
-=======
-            print('Epoch', epoch, 'completed out of', hm_epochs, 'loss:', epoch_loss)
->>>>>>> 23790bcb0c0309a745c7226a4b6baf78ab51fe48
 
         correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y,1))
         # checks to see whether we are correct or not
